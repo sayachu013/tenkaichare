@@ -171,7 +171,7 @@
             { q: "因数分解しなさい：5x² - 45", a: ["5(x + 9)(x - 9)", "5(x + 3)(x - 3)", "5(x - 3)³", "5(x - 3)²"], c: 1, type: "final" },
             { q: "因数分解しなさい：2bx² - 4bx - 16b", a: ["2b(x - 2)(x + 4)", "2b(x + 2)(x - 4)", "2b(x - 4)²", "2b(x + 2)(x + 4)"], c: 1, type: "final" },
             { q: "置き換え因数分解：(x + 3)² - 7(x + 3) + 10", a: ["(x + 1)(x - 2)", "(x + 5)(x + 2)", "(x - 1)(x - 2)", "(x - 1)(x + 2)"], c: 0, type: "final" },
-            { q: "共通部分の作成：2a(b - 4) - 4 + b を因数分解せよ", a: ["(2a - 1)(b - 4)", "(2a + 1)(b - 4)", "(2a + 1)(4 - b)", "2a(b - 4)"], c: 1, type: "final" }
+            { q: "共通部分の作成：xy + x + y + 1 を因数分解せよ", a: ["(x + 1)(y + 1)", "(x - 1)(y - 1)", "x(y + 1)", "(x + y)(1 + 1)"], c: 0, type: "final" }
         ],
         
         // 【HARDモード用問題群】
@@ -295,19 +295,17 @@
         }
     }
 
-    // 修正箇所：秒数減少ルール（ステージ変更時の上書きリセットバグを解消）
     function getNextQuestion() {
         let pool = [];
         let badge = document.getElementById('stage-badge');
         let activeBank = currentMode === 'hard' ? questionBank.hardPool : questionBank;
 
-        // 1. まず現在の正解数（コンボ）に応じて参照プールと「初期制限時間」を決定する
         let initialStageTime = 25; 
         if (combo < 3) {
             pool = activeBank.stage1;
             badge.innerText = "STAGE 1: 式の計算（乗除・基本展開）";
             badge.className = "st-kiso";
-            initialStageTime = currentMode === 'hard' ? 40 : 25; // ハードの初期時間は40秒
+            initialStageTime = currentMode === 'hard' ? 40 : 25; 
         } else if (combo < 7) {
             pool = activeBank.stage2;
             badge.innerText = "STAGE 2: 因数分解の谷（公式の利用）";
@@ -317,14 +315,13 @@
             pool = activeBank.final;
             badge.innerText = "FINAL STAGE: 思考の限界（複雑な展開・応用因数分解）";
             badge.className = "st-hell";
-            initialStageTime = 70; 
+            // 【仕様変更】ハードモードのFINAL STAGE初期時間を50秒（スタンダードは70秒）に調整
+            initialStageTime = currentMode === 'hard' ? 50 : 70; 
         }
         
-        // 2. 【ロジック修正】ゲーム開始からの「通算コンボ数」に比例した減少秒数（ペナルティ）を計算
         let penaltyStep = currentMode === 'hard' ? 4.0 : 5.5;
         let speedPenalty = Math.floor(combo / 3) * penaltyStep;
         
-        // 3. 各ステージの初期時間から純粋にペナルティを引く（無限にクリアするほど着実に減少し、下限は10秒）
         let minTime = 10.0;
         baseTimeLimit = Math.max(initialStageTime - speedPenalty, minTime);
 
