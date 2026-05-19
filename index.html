@@ -131,7 +131,7 @@
 </div>
 
 <script>
-    // --- 問題バンク（PDF記載の計算・因数分解からバリエーションを徹底拡充） ---
+    // --- 問題バンク（全ステージの問題数を大幅増量し、ランダム重複を完全に抑止） ---
     const questionBank = {
         // 【STANDARDモード用問題群】
         stage1: [
@@ -174,7 +174,7 @@
             { q: "共通部分の作成：2a(b - 4) - 4 + b を因数分解せよ", a: ["(2a - 1)(b - 4)", "(2a + 1)(b - 4)", "(2a + 1)(4 - b)", "2a(b - 4)"], c: 1, type: "final" }
         ],
         
-        // 【HARDモード用問題群】
+        // 【HARDモード用問題群（全ステージの問題数を7問以上に徹底大増量）】
         hardPool: {
             stage1: [
                 { q: "割り算しなさい：(-10x² + x) ÷ <div class='frac'><div class='num-f'>x</div><div class='den-f'>2</div></div>", a: ["-20x + 1", "-20x + 2", "-20x² + x", "-20x - 2"], c: 1, type: "basic" },
@@ -182,6 +182,8 @@
                 { q: "計算しなさい：(15x²y - 10xy²) ÷ <div class='frac'><div class='num-f'>5</div><div class='den-f'>2</div></div>xy", a: ["6x - 4y", "6x + 4y", "6x - 2y", "-6x - 4y"], c: 0, type: "basic" },
                 { q: "展開しなさい：(a + 1)(a + b - 1)", a: ["a² + ab - 1", "a² + ab + b - 1", "a² + ab - b - 1", "a² + b - 1"], c: 1, type: "basic" },
                 { q: "展開しなさい：(2a - b)(a + 3b - 1)", a: ["2a² + 6ab - 2a - 3b² + b", "2a² + 5ab - 3b² + b", "2a² + 5ab - 2a - 3b² + b", "2a² + 5ab - 2a - 3b² - b"], c: 2, type: "basic" },
+                { q: "展開しなさい：(-3a)(8a + 7b)", a: ["-24a² + 21ab", "-24a² - 21ab", "-24a² - 7ab", "24a² + 21ab"], c: 1, type: "basic" },
+                { q: "展開しなさい：-2x(-3x + 2y)", a: ["6x² - 4xy", "6x² + 4xy", "-6x² - 4xy", "6x - 4y"], c: 0, type: "basic" },
                 { q: "展開しなさい：(<div class='frac'><div class='num-f'>1</div><div class='den-f'>2</div></div>x + 2)²", a: ["<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + x + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>2</div></div>x² + 2x + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + 2x + 4"], c: 3, type: "basic" }
             ],
             stage2: [
@@ -190,13 +192,17 @@
                 { q: "展開しなさい：(-5x + 1)(5x - 1)", a: ["-25x² - 10x - 1", "-25x² + 1", "-25x² + 10x - 1", "-25x² - 10x + 1"], c: 2, type: "hard" },
                 { q: "因数分解しなさい：16y² + 40y + 25", a: ["(4y - 5)²", "(4y + 5)(4y - 5)", "因数分解できない", "(4y + 5)²"], c: 3, type: "hard" },
                 { q: "因数分解しなさい：4t² - 20t + 25", a: ["(2t - 5)²", "(2t + 5)²", "(2t - 5)(2t + 5)", "因数分解できない"], c: 0, type: "hard" },
+                { q: "因数分解しなさい：8a²b - 4b²", a: ["4b(2a² - b)", "4b(2a² + b)", "4b(2a - b)", "2b(4a² - 2b)"], c: 0, type: "hard" },
+                { q: "因数分解しなさい：a²b - ab²", a: ["ab(a + b)", "ab(a - b)", "a(ab - b²)", "b(a² - ab)"], c: 1, type: "hard" },
                 { q: "因数分解しなさい：x² - 9x - 10", a: ["(x - 1)(x + 10)", "(x + 1)(x - 10)", "(x - 2)(x - 5)", "(x + 1)(x + 10)"], c: 1, type: "hard" },
                 { q: "因数分解しなさい：x² - 16x + 64", a: ["(x + 8)(x - 8)", "(x - 8)²", "(x + 8)³", "(x - 4)²"], c: 1, type: "hard" }
             ],
             final: [
                 { q: "計算しなさい：(x - 7)(x + 7) - (x - 6)²", a: ["12x - 13", "12x - 85", "-12x - 85", "12x + 85"], c: 1, type: "final" },
                 { q: "計算しなさい：(2x + y)² - (x - 3y)(x + 3y)", a: ["3x² + 4xy - 8y²", "3x² + 4xy + 2y²", "3x² - 4xy + 10y²", "3x² + 4xy + 10y²"], c: 3, type: "final" },
+                { q: "計算しなさい：(x + 1)(x + 5) + (x - 2)(x - 4)", a: ["2x² + 13", "2x² - 13", "2x² + 6x + 13", "2x² - 6x + 13"], c: 0, type: "final" },
                 { q: "置き換え因数分解：(a + b)² + 5(a + b) + 6", a: ["(a + b - 2)(a + b - 3)", "(a + b + 2)(a + b + 3)", "(a + b + 1)(a + b + 6)", "(a + b - 2)(a + b + 3)"], c: 1, type: "final" },
+                { q: "置き換え展開：(a - 2b + 3)(a - 2b - 3)", a: ["a² - 4ab + 4b² - 9", "a² - 4ab + 4b² + 9", "a² + 4ab + 4b² - 9", "a² - 2ab + b² - 9"], c: 0, type: "final" },
                 { q: "因数分解しなさい：3ax² + 12ax + 12a", a: ["3a(x + 2)²", "3a(x - 2)²", "3a(x + 4)²", "3a(x + 2)(x + 6)"], c: 0, type: "final" },
                 { q: "因数分解しなさい：4a²b - bx²", a: ["b(2a - x)²", "b(2a + x)(2a - x)", "b(x + 2a)(x - 2a)", "b(4a - x)(a + x)"], c: 1, type: "final" },
                 { q: "置き換え因数分解：(a + b)x + (a + b)y", a: ["(a + b)x + y", "(a + b)xy", "ab(x + y)", "(a + b)(x + y)"], c: 3, type: "final" },
