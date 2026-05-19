@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学サドンデス・マスターズ</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #050c14; color: #e0e1dd; text-align: center; margin:0; padding: 20px; user-select: none; }
+        .container { max-width: 650px; margin: 0 auto; background: #0f1f38; padding: 25px; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 180, 216, 0.2); border: 2px solid #253d5b; }
+        h1 { color: #00b4d8; font-size: 1.5rem; letter-spacing: 1px; margin-top: 0; }
+        
+        /* タイムゲージ */
+        .timer-container { width: 100%; height: 14px; background: #1b263b; border-radius: 7px; overflow: hidden; margin-bottom: 20px; border: 1px solid #415a77; }
+        #timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #06d6a0, #ffb703, #e63946); transition: width 0.05s linear; }
+        
+        /* 上部ナビゲーションエリア */
+        .nav-bar { display: flex; justify-content: flex-start; margin-bottom: 15px; }
+        .home-back-btn { background-color: #415a77; color: white; border: 1px solid #5d7fa3; padding: 8px 16px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
+        .home-back-btn:hover { background-color: #e63946; border-color: #ff4d6d; }
+
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: #1b263b; padding: 12px; border-radius: 10px; font-size: 1.1rem; border: 1px solid #253d5b; }
+        .num { font-weight: bold; font-size: 1.5rem; color: #00b4d8; }
+
+        /* ステージバッジ */
+        #stage-badge { display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 0.95rem; font-weight: bold; margin-bottom: 15px; }
+        .st-kiso { background-color: #0077b6; color: white; }
+        .st-hard { background-color: #ffb703; color: #050c14; }
+        .st-hell { background-color: #e63946; color: white; animation: blink 0.8s infinite alternate; }
+
+        /* 問題表示エリア */
+        #question-box { background: #050c14; padding: 35px 20px; border-radius: 12px; font-size: 1.6rem; font-weight: bold; margin-bottom: 25px; border: 2px solid #253d5b; min-height: 80px; display: flex; align-items: center; justify-content: center; line-height: 1.4; }
+        
+        /* 縦書き分数表記用スタイル (教科書準拠) */
+        .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 85%; line-height: 1.1; padding: 0 4px; font-weight: bold; }
+        .num-f { border-bottom: 2px solid #e0e1dd; padding-bottom: 1px; }
+        .den-f { padding-top: 1px; }
+
+        /* 選択肢ボタン */
+        .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .choice-btn { background-color: #223854; color: white; border: 1px solid #415a77; padding: 18px 10px; font-size: 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.1s; line-height: 1.3; }
+        .choice-btn:active { transform: scale(0.95); }
+        .choice-btn:hover { background-color: #00b4d8; border-color: #90e0ef; }
+
+        #effect-log { height: 35px; font-size: 1.2rem; font-weight: bold; color: #06d6a0; margin-bottom: 10px; }
+
+        /* オーバーレイ画面（メニュー・結果） */
+        #screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 12, 20, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; }
+        
+        /* 難易度選択メニューのスタイル */
+        .menu-container { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 340px; margin-top: 20px; }
+        .start-btn { position: relative; color: white; border: none; padding: 18px 30px; font-size: 1.3rem; font-weight: bold; border-radius: 50px; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .start-btn:active { transform: scale(0.98); }
+        .btn-standard { background: #00b4d8; box-shadow: 0 0 15px rgba(0, 180, 216, 0.4); }
+        .btn-standard:hover { background: #0096b7; }
+        .btn-hard { background: #e63946; box-shadow: 0 0 15px rgba(230, 57, 70, 0.4); }
+        .btn-hard:hover { background: #cc323e; }
+        
+        /* レジェンド状態のボタン演出 */
+        .btn-legend { background: linear-gradient(45deg, #ffd700, #ffa500); color: #050c14; box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
+        .btn-legend:hover { background: linear-gradient(45deg, #ffe033, #ffb81a); }
+        
+        /* 金色の王冠演出 */
+        .crown { color: #ffd700; font-size: 1.6rem; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.6)); display: none; }
+        
+        /* 復習レビューボックス用スタイル */
+        .review-box { background-color: #1b263b; border: 1px solid #415a77; border-radius: 8px; padding: 15px; width: 100%; max-width: 450px; margin: 15px 0; text-align: left; box-sizing: border-box; }
+        .review-title { font-weight: bold; color: #ffb703; margin-bottom: 8px; border-bottom: 1px solid #415a77; padding-bottom: 4px; font-size: 0.95rem; }
+        .review-item { margin: 5px 0; font-size: 1.05rem; line-height: 1.4; }
+
+        @keyframes blink { from { box-shadow: 0 0 5px #e63946; } to { box-shadow: 0 0 20px #e63946; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-bar">
+        <button class="home-back-btn" onclick="backToHomeTrigger()">🏠 ホームに戻る</button>
+    </div>
+
+    <h1>⚔️ 定期テスト対策サドンデス・インフィニティ ⚔️</h1>
+    
+    <div class="timer-container"><div id="timer-bar"></div></div>
+
+    <div class="dashboard">
+        <div class="stat-box">連続正解数: <span id="combo" class="num" style="color:#06d6a0;">0</span> 問</div>
+        <div class="stat-box">最高スコア: <span id="high-score" class="num" style="color:#ffb703;">0</span> pt</div>
+    </div>
+    <div class="dashboard">
+        <div class="stat-box">獲得スコア: <span id="score" class="num">0</span> pt</div>
+        <div class="stat-box">制限時間: <span id="current-limit" class="num" style="color:#f15bb5;">0.0</span> 秒</div>
+    </div>
+
+    <div id="stage-badge" class="st-kiso font-weight:bold;">STAGE 1: 式の計算</div>
+    <div id="effect-log"></div>
+
+    <div id="question-box">READY...</div>
+
+    <div class="choices-grid">
+        <button class="choice-btn" onclick="selectAnswer(0)">-</button>
+        <button class="choice-btn" onclick="selectAnswer(1)">-</button>
+        <button class="choice-btn" onclick="selectAnswer(2)">-</button>
+        <button class="choice-btn" onclick="selectAnswer(3)">-</button>
+    </div>
+</div>
+
+<div id="screen-overlay">
+    <h2 id="screen-title" style="font-size: 2.2rem; color: #00b4d8; margin-bottom: 5px;">MATH SUDDEN DEATH</h2>
+    <div id="screen-desc" style="font-size: 1.1rem; margin-bottom: 15px; color:#aaa; line-height: 1.5; width: 100%; display: flex; flex-direction: column; align-items: center;">
+        ミス、または時間切れで即終了！<br>
+        問題が進むにつれて制限時間が削られていきます。<br>
+        目標スコア達成でメニューに金色の王冠が輝く！
+    </div>
+    
+    <div class="menu-container" id="menu-buttons">
+        <button id="btn-standard-ui" class="start-btn btn-standard" onclick="startGame('standard')">
+            <span id="crown-standard" class="crown">👑</span> <span id="text-standard">STANDARD</span>
+        </button>
+        <button id="btn-hard-ui" class="start-btn btn-hard" onclick="startGame('hard')">
+            <span id="crown-hard" class="crown">👑</span> <span id="text-hard">HARD</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- 問題バンク ---
+    const questionBank = {
+        // 【STANDARDモード用問題群】
+        stage1: [
+            { q: "計算しなさい：(2x + y) × 7x", a: ["14x² + 7xy", "14x² - 7xy", "14x² + 14xy", "14x² + 7x"], c: 0, type: "basic" },
+            { q: "計算しなさい：(5a - 6b) × (-2b)", a: ["-10ab - 12b²", "-10ab + 12b²", "10ab + 12b²", "-10ab - 8b²"], c: 1, type: "basic" },
+            { q: "計算しなさい：(5x² - 10x) ÷ 5x", a: ["x - 10", "x² - 2", "x - 2", "5x - 2"], c: 2, type: "basic" },
+            { q: "展開しなさい：(x - 4)(x + 5)", a: ["x² - x - 20", "x² + 9x - 20", "x² + x - 20", "x² - 20"], c: 2, type: "basic" },
+            { q: "展開しなさい：(3 - a)(3 + a)", a: ["9 - a²", "a² - 9", "9 - 6a + a²", "9 - 6a - a²"], c: 0, type: "basic" },
+            { q: "展開しなさい：(x - 5y)²", a: ["x² - 25y²", "x² - 10xy + 25y²", "x² - 5xy + 25y²", "x² - 10xy - 25y²"], c: 1, type: "basic" },
+            { q: "展開しなさい：(x + 9)(x - 5)", a: ["x² + 4x - 45", "x² - 4x - 45", "x² + 4x + 45", "x² + 14x - 45"], c: 0, type: "basic" }
+        ],
+        stage2: [
+            { q: "因数分解しなさい：4ax - 2a", a: ["2a(2x - 1)", "2a(2x + 1)", "2a(2x - 2)", "4a(x - 1)"], c: 0, type: "hard" },
+            { q: "計算しなさい：(3a + 2b)(2a + 3b)", a: ["6a² + 13ab + 6b²", "6a² - 13ab + 6b²", "6a² + 5ab + 6b²", "6a² + 13ab - 6b²"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：9x² - 1", a: ["(3x - 1)²", "(9x + 1)(9x - 1)", "(3x + 1)(3x - 1)", "(3x + 1)²"], c: 2, type: "hard" },
+            { q: "因数分解しなさい：x² + 7x + 6", a: ["(x + 2)(x + 3)", "(x + 1)(x + 6)", "(x - 1)(x - 6)", "(x - 2)(x - 3)"], c: 1, type: "hard" },
+            { q: "因数分解しなさい：x² - 9x + 18", a: ["(x - 2)(x - 9)", "(x - 3)(x + 6)", "(x + 3)(x + 6)", "(x - 3)(x - 6)"], c: 3, type: "hard" },
+            { q: "因数分解しなさい：x² + 7x - 8", a: ["(x - 1)(x + 8)", "(x + 1)(x - 8)", "(x - 2)(x + 4)", "(x - 1)(x - 8)"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：x² - 4x + 3", a: ["(x - 1)(x - 3)", "(x + 1)(x + 3)", "(x - 1)(x + 3)", "(x + 1)(x - 3)"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：x² + x - 6", a: ["(x - 2)(x + 3)", "(x + 2)(x - 3)", "(x - 1)(x + 6)", "(x + 1)(x - 6)"], c: 0, type: "hard" }
+        ],
+        final: [
+            { q: "計算しなさい：(x - 3)² + (x - 1)(x + 7)", a: ["2x² + 2", "2x² - 12x + 2", "2x² + 6x - 2", "2x² - 2"], c: 0, type: "final" },
+            { q: "計算しなさい：(x + 2)(x + 9) - x(x + 10)", a: ["x + 18", "x - 18", "21x + 18", "18"], c: 0, type: "final" },
+            { q: "置き換え展開：(x + y - 2)²", a: ["x² + 2xy + y² - 4x - 4y + 4", "x² + 2xy + y² + 4x + 4y + 4", "x² + 2xy + y² - 2x - 2y + 4", "x² + 2xy + y² - 4x - 4y - 4"], c: 0, type: "final" },
+            { q: "因数分解しなさい：5x² - 45", a: ["5(x + 9)(x - 9)", "5(x + 3)(x - 3)", "5(x - 3)³", "5(x - 3)²"], c: 1, type: "final" },
+            { q: "因数分解しなさい：2bx² - 4bx - 16b", a: ["2b(x - 2)(x + 4)", "2b(x + 2)(x - 4)", "2b(x - 4)²", "2b(x + 2)(x + 4)"], c: 1, type: "final" },
+            { q: "置き換え因数分解：(x + 3)² - 7(x + 3) + 10", a: ["(x + 1)(x - 2)", "(x + 5)(x + 2)", "(x - 1)(x - 2)", "(x - 1)(x + 2)"], c: 0, type: "final" },
+            { q: "共通部分の作成：2a(b - 4) - 4 + b を因数分解せよ", a: ["(2a - 1)(b - 4)", "(2a + 1)(b - 4)", "(2a + 1)(4 - b)", "2a(b - 4)"], c: 1, type: "final" }
+        ],
+        
+        // 【HARDモード用問題群】
+        hardPool: {
+            stage1: [
+                { q: "割り算しなさい：(-10x² + x) ÷ <div class='frac'><div class='num-f'>x</div><div class='den-f'>2</div></div>", a: ["-20x + 1", "-20x + 2", "-20x² + x", "-20x - 2"], c: 1, type: "basic" },
+                { q: "割り算しなさい：(3x² + 6xy) ÷ (-<div class='frac'><div class='num-f'>3</div><div class='den-f'>4</div></div>x)", a: ["-4x - 8y", "-4x + 8y", "4x - 8y", "-4x - 6y"], c: 0, type: "basic" },
+                { q: "計算しなさい：(15x²y - 10xy²) ÷ <div class='frac'><div class='num-f'>5</div><div class='den-f'>2</div></div>xy", a: ["6x - 4y", "6x + 4y", "6x - 2y", "-6x - 4y"], c: 0, type: "basic" },
+                { q: "展開しなさい：(a + 1)(a + b - 1)", a: ["a² + ab - 1", "a² + ab + b - 1", "a² + ab - b - 1", "a² + b - 1"], c: 1, type: "basic" },
+                { q: "展開しなさい：(2a - b)(a + 3b - 1)", a: ["2a² + 6ab - 2a - 3b² + b", "2a² + 5ab - 3b² + b", "2a² + 5ab - 2a - 3b² + b", "2a² + 5ab - 2a - 3b² - b"], c: 2, type: "basic" },
+                { q: "展開しなさい：(<div class='frac'><div class='num-f'>1</div><div class='den-f'>2</div></div>x + 2)²", a: ["<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + x + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>2</div></div>x² + 2x + 4", "<div class='frac'><div class='num-f'>1</div><div class='den-f'>4</div></div>x² + 2x + 4"], c: 3, type: "basic" }
+            ],
+            stage2: [
+                { q: "計算しなさい：(9a - 2b)(5a + 6b)", a: ["45a² + 54ab - 12b²", "45a² + 44ab - 12b²", "45a² - 44ab - 12b²", "45a² + 44ab + 12b²"], c: 1, type: "hard" },
+                { q: "計算しなさい：(2x - 3y)(8x - y)", a: ["16x² - 26xy + 3y²", "16x² - 24xy + 3y²", "16x² - 26xy - 3y²", "16x² + 26xy + 3y²"], c: 0, type: "hard" },
+                { q: "展開しなさい：(-5x + 1)(5x - 1)", a: ["-25x² - 10x - 1", "-25x² + 1", "-25x² + 10x - 1", "-25x² - 10x + 1"], c: 2, type: "hard" },
+                { q: "因数分解しなさい：16y² + 40y + 25", a: ["(4y - 5)²", "(4y + 5)(4y - 5)", "因数分解できない", "(4y + 5)²"], c: 3, type: "hard" },
+                { q: "因数分解しなさい：4t² - 20t + 25", a: ["(2t - 5)²", "(2t + 5)²", "(2t - 5)(2t + 5)", "因数分解できない"], c: 0, type: "hard" },
+                { q: "因数分解しなさい：x² - 9x - 10", a: ["(x - 1)(x + 10)", "(x + 1)(x - 10)", "(x - 2)(x - 5)", "(x + 1)(x + 10)"], c: 1, type: "hard" },
+                { q: "因数分解しなさい：x² - 16x + 64", a: ["(x + 8)(x - 8)", "(x - 8)²", "(x + 8)³", "(x - 4)²"], c: 1, type: "hard" }
+            ],
+            final: [
+                { q: "計算しなさい：(x - 7)(x + 7) - (x - 6)²", a: ["12x - 13", "12x - 85", "-12x - 85", "12x + 85"], c: 1, type: "final" },
+                { q: "計算しなさい：(2x + y)² - (x - 3y)(x + 3y)", a: ["3x² + 4xy - 8y²", "3x² + 4xy + 2y²", "3x² - 4xy + 10y²", "3x² + 4xy + 10y²"], c: 3, type: "final" },
+                { q: "置き換え因数分解：(a + b)² + 5(a + b) + 6", a: ["(a + b - 2)(a + b - 3)", "(a + b + 2)(a + b + 3)", "(a + b + 1)(a + b + 6)", "(a + b - 2)(a + b + 3)"], c: 1, type: "final" },
+                { q: "因数分解しなさい：3ax² + 12ax + 12a", a: ["3a(x + 2)²", "3a(x - 2)²", "3a(x + 4)²", "3a(x + 2)(x + 6)"], c: 0, type: "final" },
+                { q: "因数分解しなさい：4a²b - bx²", a: ["b(2a - x)²", "b(2a + x)(2a - x)", "b(x + 2a)(x - 2a)", "b(4a - x)(a + x)"], c: 1, type: "final" },
+                { q: "置き換え因数分解：(a + b)x + (a + b)y", a: ["(a + b)x + y", "(a + b)xy", "ab(x + y)", "(a + b)(x + y)"], c: 3, type: "final" },
+                { q: "共通部分の作成：xy + x + y + 1 を因数分解せよ", a: ["(x + 1)(y + 1)", "(x - 1)(y - 1)", "x(y + 1)", "(x + y)(1 + 1)"], c: 0, type: "final" }
+            ]
+        }
+    };
+
+    let score = 0;
+    let combo = 0;
+    let currentQ = null;
+    let currentMode = 'standard'; 
+    let lastQuestionIdx = -1;
+    
+    let baseTimeLimit = 0; 
+    let timeRemaining = 0;
+    let gameTicker = null;
+    const tickRate = 50;
+
+    const targetScores = { standard: 2500, hard: 4000 };
+    const maxScores = { standard: 5000, hard: 8000 };
+
+    window.onload = function() {
+        updateHighScoreDisplay();
+        checkCrowns();
+    };
+
+    function checkCrowns() {
+        let isLegendSystem = false;
+        
+        if (sessionStorage.getItem('math_crown_standard') === 'true') {
+            document.getElementById('crown-standard').style.display = 'inline-block';
+        }
+        if (sessionStorage.getItem('math_legend_standard') === 'true') {
+            document.getElementById('btn-standard-ui').className = "start-btn btn-legend";
+            document.getElementById('text-standard').innerText = "LEGEND (完全制覇)";
+            isLegendSystem = true;
+        }
+
+        if (sessionStorage.getItem('math_crown_hard') === 'true') {
+            document.getElementById('crown-hard').style.display = 'inline-block';
+        }
+        if (sessionStorage.getItem('math_legend_hard') === 'true') {
+            document.getElementById('btn-hard-ui').className = "start-btn btn-legend";
+            document.getElementById('text-hard').innerText = "LEGEND (完全制覇)";
+            isLegendSystem = true;
+        }
+
+        if (isLegendSystem) {
+            document.getElementById('screen-title').innerHTML = "👑 MATH LEGEND ATTACK 👑";
+            document.getElementById('screen-title').style.color = "#ffd700";
+        } else {
+            document.getElementById('screen-title').innerHTML = "MATH SUDDEN DEATH";
+            document.getElementById('screen-title').style.color = "#00b4d8";
+        }
+    }
+
+    function updateHighScoreDisplay() {
+        let key = currentMode === 'hard' ? 'math_pdf_high_hard' : 'math_pdf_high_standard';
+        document.getElementById('high-score').innerText = sessionStorage.getItem(key) || 0;
+    }
+
+    function startGame(mode) {
+        currentMode = mode || 'standard';
+        score = 0; combo = 0; lastQuestionIdx = -1;
+        updateHighScoreDisplay();
+        document.getElementById('screen-overlay').style.display = 'none';
+        document.getElementById('effect-log').innerText = "";
+        nextQuestion();
+    }
+
+    function backToHomeTrigger() {
+        clearInterval(gameTicker);
+        if (confirm("本当にメニュー画面に戻りますか？\n（現在のスコアはリセットされます）")) {
+            document.getElementById('screen-title').innerText = "MATH SUDDEN DEATH";
+            document.getElementById('screen-desc').innerHTML = "難易度を選んで再挑戦してください！";
+            checkCrowns();
+            document.getElementById('menu-buttons').style.display = 'flex'; // 両ボタンの表示を確実にする
+            document.getElementById('screen-overlay').style.display = 'flex';
+        } else {
+            startTimer();
+        }
+    }
+
+    function getNextQuestion() {
+        let pool = [];
+        let badge = document.getElementById('stage-badge');
+        let activeBank = currentMode === 'hard' ? questionBank.hardPool : questionBank;
+
+        if (combo < 3) {
+            pool = activeBank.stage1;
+            badge.innerText = "STAGE 1: 式の計算（乗除・基本展開）";
+            badge.className = "st-kiso";
+            baseTimeLimit = 25; 
+        } else if (combo < 7) {
+            pool = activeBank.stage2;
+            badge.innerText = "STAGE 2: 因数分解の谷（公式の利用）";
+            badge.className = "st-hard";
+            baseTimeLimit = 40; 
+        } else {
+            pool = activeBank.final;
+            badge.innerText = "FINAL STAGE: 思考の限界（複雑な展開・応用因数分解）";
+            badge.className = "st-hell";
+            baseTimeLimit = 70; 
+        }
+        
+        let penaltyStep = currentMode === 'hard' ? 4.0 : 5.5;
+        let speedPenalty = Math.floor(combo / 3) * penaltyStep;
+        
+        let minTime = 10.0;
+        baseTimeLimit = Math.max(baseTimeLimit - speedPenalty, minTime);
+
+        let rnd;
+        do {
+            rnd = Math.floor(Math.random() * pool.length);
+        } while (pool.length > 1 && rnd === lastQuestionIdx);
+        
+        lastQuestionIdx = rnd;
+        return pool[rnd];
+    }
+
+    function nextQuestion() {
+        currentQ = getNextQuestion();
+        document.getElementById('current-limit').innerText = baseTimeLimit.toFixed(1);
+        document.getElementById('question-box').innerHTML = currentQ.q;
+        let btns = document.querySelectorAll('.choice-btn');
+        for(let i=0; i<4; i++) {
+            btns[i].innerText = currentQ.a[i];
+        }
+
+        timeRemaining = baseTimeLimit;
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(gameTicker);
+        gameTicker = setInterval(() => {
+            timeRemaining -= (tickRate / 1000);
+            let percent = (timeRemaining / baseTimeLimit) * 100;
+            document.getElementById('timer-bar').style.width = percent + "%";
+
+            if (timeRemaining <= 0) {
+                clearInterval(gameTicker);
+                gameOver("⏳ タイムアップ！時間切れです ⏳", -1);
+            }
+        }, tickRate);
+    }
+
+    function selectAnswer(idx) {
+        clearInterval(gameTicker);
+        let log = document.getElementById('effect-log');
+
+        if (idx === currentQ.c) {
+            combo++;
+            
+            let typeWeight = 100;
+            if (currentQ.type === "hard") typeWeight = 200;
+            if (currentQ.type === "final") typeWeight = 500; 
+            
+            if (currentMode === 'hard') typeWeight = Math.floor(typeWeight * 1.5);
+            
+            let earned = typeWeight + (combo * 15);
+            
+            if (timeRemaining <= (baseTimeLimit * 0.12)) {
+                earned *= 3;
+                log.innerHTML = `<span style="color:#ffb703;">⚡ 神回避!! ギリギリ正解でスコア3倍奪取!! ⚡</span>`;
+            } else {
+                log.innerHTML = `<span style="color:#06d6a0;">GREAT! 撃破成功 (+${Math.floor(earned)}pt)</span>`;
+            }
+
+            score += Math.floor(earned);
+            document.getElementById('score').innerText = score;
+            document.getElementById('combo').innerText = combo;
+            
+            nextQuestion();
+        } else {
+            gameOver("❌ 誤答！ 計算ミスにより強制終了 ❌", idx);
+        }
+    }
+
+    function gameOver(reason, selectedIdx) {
+        clearInterval(gameTicker);
+        
+        let scoreKey = currentMode === 'hard' ? 'math_pdf_high_hard' : 'math_pdf_high_standard';
+        let crownKey = currentMode === 'hard' ? 'math_crown_hard' : 'math_crown_standard';
+        let legendKey = currentMode === 'hard' ? 'math_legend_hard' : 'math_legend_standard';
+        
+        let high = parseInt(sessionStorage.getItem(scoreKey) || 0);
+        let isNew = false;
+        if(score > high) {
+            sessionStorage.setItem(scoreKey, score);
+            high = score;
+            isNew = true;
+        }
+        
+        let target = targetScores[currentMode];
+        let maxLimit = maxScores[currentMode];
+        let targetReached = false;
+        let legendReached = false;
+
+        if (score >= target) {
+            sessionStorage.setItem(crownKey, 'true');
+            targetReached = true;
+        }
+        if (score >= maxLimit) {
+            sessionStorage.setItem(legendKey, 'true');
+            legendReached = true;
+        }
+
+        document.getElementById('high-score').innerText = high;
+        document.getElementById('screen-title').innerText = "GAME OVER";
+        
+        let descHtml = `
+            <span style="color:#ff4d6d; font-weight:bold;">${reason}</span><br><br>
+            難易度: <strong>${currentMode.toUpperCase()}</strong><br>
+            記録: <strong style="font-size:1.5rem; color:#06d6a0;">${combo}</strong> 問連続正解<br>
+            最終スコア: <strong style="font-size:2rem; color:#ffb703;">${score}</strong> pt / 目標: ${target} pt<br>
+        `;
+
+        if (currentQ) {
+            let playerAnswerText = selectedIdx === -1 ? "<span style='color:#ff4d6d;'>時間切れ</span>" : `<span style='color:#ff4d6d;'>${currentQ.a[selectedIdx]}</span>`;
+            let correctAnswerText = `<span style='color:#06d6a0;'>${currentQ.a[currentQ.c]}</span>`;
+            
+            descHtml += `
+                <div class="review-box">
+                    <div class="review-title">🔍 直前の問題レビューと復習</div>
+                    <div class="review-item"><strong>問題:</strong> ${currentQ.q}</div>
+                    <div class="review-item"><strong>あなたの回答:</strong> ${playerAnswerText}</div>
+                    <div class="review-item"><strong>正しい正解:</strong> ${correctAnswerText}</div>
+                </div>
+            `;
+        }
+        
+        if (legendReached) {
+            descHtml += `<span style="color:#ffd700; font-weight:bold; font-size:1.4rem; filter:drop-shadow(0 0 8px #ffa500);">🏆 レジェンド降臨！極限の壁を突破しました！ 🏆</span><br>`;
+        } else if (targetReached) {
+            descHtml += `<span style="color:#ffd700; font-weight:bold; font-size:1.2rem;">👑 目標達成！王冠を維持しています！（次の限界: ${maxLimit}pt） 👑</span><br>`;
+        } else {
+            descHtml += `<span style="color:#aaa;">王冠獲得の ${target} pt まであと ${(target - score)} pt！</span><br>`;
+        }
+        
+        if (isNew && !legendReached) {
+            descHtml += `<span style="color:#00b4d8;">✨ 自己ベスト更新！ ✨</span><br>`;
+        }
+
+        document.getElementById('screen-desc').innerHTML = descHtml;
+        
+        checkCrowns();
+        document.getElementById('menu-buttons').style.display = 'flex'; // 【バグ修正】結果画面に両方のボタンを確実に同時表示させる
+        document.getElementById('screen-overlay').style.display = 'flex';
+    }
+</script>
+</body>
+</html>
