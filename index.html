@@ -45,7 +45,7 @@
         #effect-log { height: 35px; font-size: 1.2rem; font-weight: bold; color: #06d6a0; margin-bottom: 10px; }
 
         /* オーバーレイ画面（メニュー・結果） */
-        #screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 12, 20, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; }
+        #screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 12, 20, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         
         /* 難易度選択メニューのスタイル */
         .menu-container { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 340px; margin-top: 20px; }
@@ -55,6 +55,8 @@
         .btn-standard:hover { background: #0096b7; }
         .btn-hard { background: #e63946; box-shadow: 0 0 15px rgba(230, 57, 70, 0.4); }
         .btn-hard:hover { background: #cc323e; }
+        .btn-home { background: #415a77; box-shadow: 0 0 15px rgba(65, 90, 119, 0.4); }
+        .btn-home:hover { background: #33475e; }
         
         /* レジェンド状態のボタン演出 */
         .btn-legend { background: linear-gradient(45deg, #ffd700, #ffa500); color: #050c14; box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
@@ -120,30 +122,47 @@
             <span id="crown-hard" class="crown">👑</span> <span id="text-hard">HARD</span>
         </button>
     </div>
+
+    <div class="menu-container" id="gameover-buttons" style="display: none;">
+        <button id="btn-re-standard" class="start-btn btn-standard" onclick="startGame('standard')">STANDARDで再挑戦</button>
+        <button id="btn-re-hard" class="start-btn btn-hard" onclick="startGame('hard')">HARDで再挑戦</button>
+        <button class="start-btn btn-home" onclick="showMainMenu()">🏠 ホームメニューに戻る</button>
+    </div>
 </div>
 
 <script>
-    // --- 問題バンク ---
+    // --- 問題バンク（PDF記載の計算・因数分解からバリエーションを徹底拡充） ---
     const questionBank = {
         // 【STANDARDモード用問題群】
         stage1: [
             { q: "計算しなさい：(2x + y) × 7x", a: ["14x² + 7xy", "14x² - 7xy", "14x² + 14xy", "14x² + 7x"], c: 0, type: "basic" },
+            { q: "計算しなさい：(3a - b) × 4a", a: ["12a² - 4ab", "12a² + 4ab", "12a² - ab", "12a² - 4a"], c: 0, type: "basic" },
             { q: "計算しなさい：(5a - 6b) × (-2b)", a: ["-10ab - 12b²", "-10ab + 12b²", "10ab + 12b²", "-10ab - 8b²"], c: 1, type: "basic" },
+            { q: "計算しなさい：4x(2x - 1)", a: ["8x² - 4x", "8x² + 4x", "8x² - 1", "8x² - 4"], c: 0, type: "basic" },
+            { q: "計算しなさい：2x(x + 3y)", a: ["2x² + 6x", "2x² + 3xy", "2x² + 6xy", "2x² - 6xy"], c: 2, type: "basic" },
             { q: "計算しなさい：(5x² - 10x) ÷ 5x", a: ["x - 10", "x² - 2", "x - 2", "5x - 2"], c: 2, type: "basic" },
             { q: "展開しなさい：(x - 4)(x + 5)", a: ["x² - x - 20", "x² + 9x - 20", "x² + x - 20", "x² - 20"], c: 2, type: "basic" },
             { q: "展開しなさい：(3 - a)(3 + a)", a: ["9 - a²", "a² - 9", "9 - 6a + a²", "9 - 6a - a²"], c: 0, type: "basic" },
             { q: "展開しなさい：(x - 5y)²", a: ["x² - 25y²", "x² - 10xy + 25y²", "x² - 5xy + 25y²", "x² - 10xy - 25y²"], c: 1, type: "basic" },
-            { q: "展開しなさい：(x + 9)(x - 5)", a: ["x² + 4x - 45", "x² - 4x - 45", "x² + 4x + 45", "x² + 14x - 45"], c: 0, type: "basic" }
+            { q: "展開しなさい：(x + 9)(x - 5)", a: ["x² + 4x - 45", "x² - 4x - 45", "x² + 4x + 45", "x² + 14x - 45"], c: 0, type: "basic" },
+            { q: "展開しなさい：(x - 6)(x - 4)", a: ["x² - 10x + 24", "x² + 10x + 24", "x² - 10x - 24", "x² - 24"], c: 0, type: "basic" },
+            { q: "展開しなさい：(x + 5)(x - 8)", a: ["x² + 3x - 40", "x² - 3x - 40", "x² - 3x + 40", "x² - 13x - 40"], c: 1, type: "basic" }
         ],
         stage2: [
+            { q: "因数分解しなさい：ab - ac", a: ["a(b - c)", "a(b + c)", "ab(1 - c)", "a(b - ac)"], c: 0, type: "hard" },
             { q: "因数分解しなさい：4ax - 2a", a: ["2a(2x - 1)", "2a(2x + 1)", "2a(2x - 2)", "4a(x - 1)"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：2ax + 3ay", a: ["a(2x + 3y)", "a(2x - 3y)", "2a(x + 3y)", "3a(2x + y)"], c: 0, type: "hard" },
             { q: "計算しなさい：(3a + 2b)(2a + 3b)", a: ["6a² + 13ab + 6b²", "6a² - 13ab + 6b²", "6a² + 5ab + 6b²", "6a² + 13ab - 6b²"], c: 0, type: "hard" },
             { q: "因数分解しなさい：9x² - 1", a: ["(3x - 1)²", "(9x + 1)(9x - 1)", "(3x + 1)(3x - 1)", "(3x + 1)²"], c: 2, type: "hard" },
+            { q: "因数分解しなさい：x² + 2x + 1", a: ["(x + 1)²", "(x - 1)²", "(x + 1)(x + 2)", "因数分解できない"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：x² - 4x + 4", a: ["(x + 2)²", "(x - 2)²", "(x + 2)(x - 2)", "(x - 4)²"], c: 1, type: "hard" },
             { q: "因数分解しなさい：x² + 7x + 6", a: ["(x + 2)(x + 3)", "(x + 1)(x + 6)", "(x - 1)(x - 6)", "(x - 2)(x - 3)"], c: 1, type: "hard" },
+            { q: "因数分解しなさい：x² + 8x + 12", a: ["(x + 2)(x + 6)", "(x - 2)(x - 6)", "(x + 3)(x + 4)", "(x + 1)(x + 11)"], c: 0, type: "hard" },
             { q: "因数分解しなさい：x² - 9x + 18", a: ["(x - 2)(x - 9)", "(x - 3)(x + 6)", "(x + 3)(x + 6)", "(x - 3)(x - 6)"], c: 3, type: "hard" },
             { q: "因数分解しなさい：x² + 7x - 8", a: ["(x - 1)(x + 8)", "(x + 1)(x - 8)", "(x - 2)(x + 4)", "(x - 1)(x - 8)"], c: 0, type: "hard" },
             { q: "因数分解しなさい：x² - 4x + 3", a: ["(x - 1)(x - 3)", "(x + 1)(x + 3)", "(x - 1)(x + 3)", "(x + 1)(x - 3)"], c: 0, type: "hard" },
-            { q: "因数分解しなさい：x² + x - 6", a: ["(x - 2)(x + 3)", "(x + 2)(x - 3)", "(x - 1)(x + 6)", "(x + 1)(x - 6)"], c: 0, type: "hard" }
+            { q: "因数分解しなさい：x² + x - 6", a: ["(x - 2)(x + 3)", "(x + 2)(x - 3)", "(x - 1)(x + 6)", "(x + 1)(x - 6)"], c: 0, type: "hard" },
+            { q: "因数分解しなさい：x² - 8x + 7", a: ["(x - 1)(x - 7)", "(x + 1)(x + 7)", "(x - 1)(x + 7)", "(x + 1)(x - 7)"], c: 0, type: "hard" }
         ],
         final: [
             { q: "計算しなさい：(x - 3)² + (x - 1)(x + 7)", a: ["2x² + 2", "2x² - 12x + 2", "2x² + 6x - 2", "2x² - 2"], c: 0, type: "final" },
@@ -235,6 +254,17 @@
         }
     }
 
+    function showMainMenu() {
+        document.getElementById('gameover-buttons').style.display = 'none';
+        document.getElementById('menu-buttons').style.display = 'flex';
+        document.getElementById('screen-desc').innerHTML = `
+            ミス、または時間切れで即終了！<br>
+            問題が進むにつれて制限時間が削られていきます。<br>
+            目標スコア達成でメニューに金色の王冠が輝く！
+        `;
+        checkCrowns();
+    }
+
     function updateHighScoreDisplay() {
         let key = currentMode === 'hard' ? 'math_pdf_high_hard' : 'math_pdf_high_standard';
         document.getElementById('high-score').innerText = sessionStorage.getItem(key) || 0;
@@ -252,10 +282,7 @@
     function backToHomeTrigger() {
         clearInterval(gameTicker);
         if (confirm("本当にメニュー画面に戻りますか？\n（現在のスコアはリセットされます）")) {
-            document.getElementById('screen-title').innerText = "MATH SUDDEN DEATH";
-            document.getElementById('screen-desc').innerHTML = "難易度を選んで再挑戦してください！";
-            checkCrowns();
-            document.getElementById('menu-buttons').style.display = 'flex'; // 両ボタンの表示を確実にする
+            showMainMenu();
             document.getElementById('screen-overlay').style.display = 'flex';
         } else {
             startTimer();
@@ -305,7 +332,7 @@
         document.getElementById('question-box').innerHTML = currentQ.q;
         let btns = document.querySelectorAll('.choice-btn');
         for(let i=0; i<4; i++) {
-            btns[i].innerText = currentQ.a[i];
+            btns[i].innerHTML = currentQ.a[i];
         }
 
         timeRemaining = baseTimeLimit;
@@ -426,7 +453,8 @@
         document.getElementById('screen-desc').innerHTML = descHtml;
         
         checkCrowns();
-        document.getElementById('menu-buttons').style.display = 'flex'; // 【バグ修正】結果画面に両方のボタンを確実に同時表示させる
+        document.getElementById('menu-buttons').style.display = 'none';
+        document.getElementById('gameover-buttons').style.display = 'flex';
         document.getElementById('screen-overlay').style.display = 'flex';
     }
 </script>
